@@ -1,8 +1,8 @@
 import { Route, Routes } from "react-router-dom";
 import Login from "./pages/auth/Login";
-import ProtectedLayout from "./layout/ProtectedLayout";
 import MainLayout from "./layout/MainLayout";
 import Home from "./pages/Home";
+import ProtectedLayout from "./layout/ProtectedLayout";
 
 const App = () => {
   return (
