@@ -5,6 +5,11 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { CategoriesModule } from './categories/categories.module';
+import { ProductsModule } from './products/products.module';
+import { User } from './users/entities/user.entity';
+import { Product } from './products/entities/product.entity';
+import { Category } from './categories/entities/category.entity';
 
 @Module({
   imports: [
@@ -17,10 +22,13 @@ import { AuthModule } from './auth/auth.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       autoLoadEntities: true,
-      synchronize: true, // Auto-creates tables for dev; turn off for prod
+      synchronize: true,
+      entities: [User, Product, Category],
     }),
     UsersModule,
     AuthModule,
+    ProductsModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
