@@ -1,13 +1,27 @@
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import type { JSX } from "react";
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-export default function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { user, loading } = useAuth();
-  console.log(user);
-
-  if (loading) return <p>Loading...</p>;
-  if (!user) return <Navigate to="/login" />;
-
-  return children;
+interface ProtectedLayoutProps {
+  children: React.ReactNode;
 }
+
+const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+export default ProtectedLayout;
+

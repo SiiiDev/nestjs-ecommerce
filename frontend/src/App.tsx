@@ -1,22 +1,25 @@
-import { Route, Routes } from "react-router-dom"
-import Login from "./pages/auth/Login"
-import ProtectedRoute from "./layout/ProtectedLayout"
-import Home from "./pages/Home"
+import { Route, Routes } from "react-router-dom";
+import Login from "./pages/auth/Login";
+import ProtectedLayout from "./layout/ProtectedLayout";
+import MainLayout from "./layout/MainLayout";
+import Home from "./pages/Home";
 
 const App = () => {
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Home />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/login" element={<Login />} />
-    </Routes>
-  )
-}
+    <MainLayout>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <ProtectedLayout>
+              <Home />
+            </ProtectedLayout>
+          }
+        />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </MainLayout>
+  );
+};
 
-export default App
+export default App;

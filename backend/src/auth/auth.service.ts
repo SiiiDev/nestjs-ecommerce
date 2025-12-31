@@ -1,24 +1,30 @@
 import { RegisterDto } from './dto/register.dto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
-
 @Injectable()
 export class AuthService {
-    constructor(
+  constructor(
     @InjectRepository(User)
     private userRepo: Repository<User>,
     private jwtService: JwtService,
   ) {}
 
+  async register(registerDto: RegisterDto) {
+    const { email, password } = registerDto;
 
-//   Register Object 
-  async register(registerDto: RegisterDto){
-    const {email, password} = registerDto;
+    // Check if user already exists
+    const existingUser = await this.userRepo.findOne({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -27,15 +33,19 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    return this.userRepo.save(user);
+    const savedUser = await this.userRepo.save(user);
+    
+    // Return user without password
+    const { password: _, ...result } = savedUser;
+    return result;
   }
 
-// Validate user credentials
-  async validateUser(email: string, password: string){
+  async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userRepo.findOne({
-        where: {email},
-        select: ['id', 'email', 'password', 'role'],
+      where: { email },
+      select: ['id', 'email', 'password', 'role'],
     });
+
     if (user && (await bcrypt.compare(password, user.password))) {
       return user;
     }
@@ -43,11 +53,8 @@ export class AuthService {
     return null;
   }
 
-// jwt token generator
-async login(user: User){
-    const payload = {'sub': user.id, 'email': user.email, 'role': user.role};
-    const token = this.jwtService.sign(payload);
-    return token;
-}
-
+  async login(user: User): Promise<string> {
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    return this.jwtService.sign(payload);
+  }
 }
