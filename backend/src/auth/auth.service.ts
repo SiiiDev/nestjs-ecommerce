@@ -1,53 +1,66 @@
-import { RegisterDto } from './dto/register.dto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-
+import { User } from '../users/entities/user.entity';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
-    constructor(
+  constructor(
     @InjectRepository(User)
-    private userRepo: Repository<User>,
+    private userRepository: Repository<User>,
     private jwtService: JwtService,
   ) {}
 
+  async register(registerDto: RegisterDto) {
+    const { email, password } = registerDto;
 
-//   Register Object 
-  async register(registerDto: RegisterDto){
-    const {email, password} = registerDto;
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = this.userRepo.create({
+    const user = this.userRepository.create({
       email,
       password: hashedPassword,
     });
 
-    return this.userRepo.save(user);
+    const savedUser = await this.userRepository.save(user);
+    const { password: _, ...result } = savedUser;
+    return result;
   }
 
-// Validate user credentials
-  async validateUser(email: string, password: string){
-    const user = await this.userRepo.findOne({
-        where: {email},
-        select: ['id', 'email', 'password', 'role'],
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const user = await this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'role'],
     });
-    if (user && (await bcrypt.compare(password, user.password))) {
-      return user;
+
+    if (!user) {
+      return null;
     }
 
-    return null;
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return null;
+    }
+
+    return user;
   }
 
-// jwt token generator
-async login(user: User){
-    const payload = {'sub': user.id, 'email': user.email, 'role': user.role};
-    const token = this.jwtService.sign(payload);
-    return token;
-}
-
+  async login(user: User) {
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+    return this.jwtService.sign(payload);
+  }
 }

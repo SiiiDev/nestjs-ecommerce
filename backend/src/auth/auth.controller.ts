@@ -1,52 +1,79 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { error } from 'console';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import type { Response, Request } from 'express';
 
+interface AuthenticatedRequest extends Request {
+  user: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
 
 @Controller('auth')
 export class AuthController {
-   constructor(private readonly authService: AuthService){}
+  constructor(private readonly authService: AuthService) {}
 
-   @Post('register')
-   async register(@Body() registerDto: RegisterDto){
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
-   }
+  }
 
-   @Post('login')
+  @Post('login')
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
     const user = await this.authService.validateUser(
-        loginDto.email,
-        loginDto.password
+      loginDto.email,
+      loginDto.password,
     );
-    if(!user) return {error: 'invalid credentials'};
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     const token = await this.authService.login(user);
+
     res.cookie('jwt', token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
     });
 
-    return { message: 'Logged in' };
+    const { password: _, ...userWithoutPassword } = user;
+    return {
+      user: userWithoutPassword,
+    };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async me(@Req() req: Request) {
+  async getCurrentUser(@Req() req: AuthenticatedRequest) {
     return req.user;
   }
 
-  // Logout user by clearing cookie
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('jwt');
-    return { message: 'Logged out' };
+    res.clearCookie('jwt', {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+    });
+    return { message: 'Logged out successfully' };
   }
 }
