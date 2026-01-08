@@ -1,8 +1,49 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import api from '../lib/axios'
+import Spinner from '../components/Spinner'
+import { useCart } from '../context/CartContext'
+
+type Book = {
+    id: string
+    title: string
+    price: number
+    cover?: string | null
+}
 
 const Accueil = () => {
-  return (
-    <>
+    const [books, setBooks] = useState<Book[]>([])
+    const [loading, setLoading] = useState<boolean>(false)
+    const [error, setError] = useState<string | null>(null)
+    const { addItem } = useCart()
+
+    useEffect(() => {
+        const fetchBooks = async () => {
+            setLoading(true)
+            setError(null)
+            try {
+                const res = await api.get('/books', { params: { page: 1, limit: 4 } })
+                // Backend returns { data: Book[], meta: { ... } }
+                const payload = res.data
+                if (Array.isArray(payload)) {
+                    setBooks(payload)
+                } else if (payload && Array.isArray(payload.data)) {
+                    setBooks(payload.data)
+                } else {
+                    setBooks([])
+                }
+            } catch (err: any) {
+                setError(err?.response?.data?.message || err.message || 'Failed to load books')
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchBooks()
+    }, [])
+
+    const baseURL = api.defaults.baseURL || ''
+
+    return (
+        <>
         <section className="relative bg-gray-900 text-white py-32 text-center px-6 bg-cover bg-center" style={{backgroundImage: "url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')"}}>
             <div className="absolute inset-0 bg-black/50"></div>
             
@@ -51,58 +92,32 @@ const Accueil = () => {
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-10">
-                    <div className="group transition-transform hover:-translate-y-1">
-                        <div className="relative rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all mb-4 aspect-[2/3]">
-                            <img src="https://via.placeholder.com/300x450/333/FFF?text=The+Midnight+Library" alt="Book Title" className="w-full h-full object-cover" />
-                            <button className="absolute bottom-0 left-0 w-full py-3 bg-white/95 text-dark font-semibold hover:bg-primary hover:text-white transition-all translate-y-full group-hover:translate-y-0">
-                                Add to Cart
-                            </button>
+                    {loading ? (
+                        <div className="col-span-2 lg:col-span-4 flex justify-center items-center py-12">
+                            <Spinner size={48} />
                         </div>
-                        <div>
-                            <a href="#" className="block font-serif font-bold text-lg truncate mb-1 hover:text-primary">The Midnight Library</a>
-                            <a href="#" className="block text-sm text-gray-500 mb-2 hover:underline">Matt Haig</a>
-                            <div className="font-bold text-primary-dark">$14.99 <span className="text-gray-400 line-through font-normal text-sm ml-2">$18.00</span></div>
-                        </div>
-                    </div>
-                    <div className="group transition-transform hover:-translate-y-1">
-                        <div className="relative rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all mb-4 aspect-[2/3]">
-                            <img src="https://via.placeholder.com/300x450/4a5/FFF?text=Project+Hail+Mary" alt="Book Title" className="w-full h-full object-cover" />
-                            <button className="absolute bottom-0 left-0 w-full py-3 bg-white/95 text-dark font-semibold hover:bg-primary hover:text-white transition-all translate-y-full group-hover:translate-y-0">
-                                Add to Cart
-                            </button>
-                        </div>
-                        <div>
-                            <a href="#" className="block font-serif font-bold text-lg truncate mb-1 hover:text-primary">Project Hail Mary</a>
-                            <a href="#" className="block text-sm text-gray-500 mb-2 hover:underline">Andy Weir</a>
-                            <div className="font-bold text-primary-dark">$16.50</div>
-                        </div>
-                    </div>
-                    <div className="group transition-transform hover:-translate-y-1">
-                        <div className="relative rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all mb-4 aspect-[2/3]">
-                            <img src="https://via.placeholder.com/300x450/667/FFF?text=Klara+and+the+Sun" alt="Book Title" className="w-full h-full object-cover" />
-                            <button className="absolute bottom-0 left-0 w-full py-3 bg-white/95 text-dark font-semibold hover:bg-primary hover:text-white transition-all translate-y-full group-hover:translate-y-0">
-                                Add to Cart
-                            </button>
-                        </div>
-                        <div>
-                            <a href="#" className="block font-serif font-bold text-lg truncate mb-1 hover:text-primary">Klara and the Sun</a>
-                            <a href="#" className="block text-sm text-gray-500 mb-2 hover:underline">Kazuo Ishiguro</a>
-                            <div className="font-bold text-primary-dark">$15.20</div>
-                        </div>
-                    </div>
-                    <div className="group transition-transform hover:-translate-y-1">
-                        <div className="relative rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all mb-4 aspect-[2/3]">
-                            <img src="https://via.placeholder.com/300x450/822/FFF?text=Dune" alt="Book Title" className="w-full h-full object-cover" />
-                            <button className="absolute bottom-0 left-0 w-full py-3 bg-white/95 text-dark font-semibold hover:bg-primary hover:text-white transition-all translate-y-full group-hover:translate-y-0">
-                                Add to Cart
-                            </button>
-                        </div>
-                        <div>
-                            <a href="#" className="block font-serif font-bold text-lg truncate mb-1 hover:text-primary">Dune</a>
-                            <a href="#" className="block text-sm text-gray-500 mb-2 hover:underline">Frank Herbert</a>
-                            <div className="font-bold text-primary-dark">$12.99</div>
-                        </div>
-                    </div>
+                    ) : error ? (
+                        <div className="col-span-2 lg:col-span-4 text-center text-red-600">{error}</div>
+                    ) : (
+                        books?.map((book) => {
+                            const imgSrc = book.cover ? `${baseURL}/uploads/${book.cover}` : `https://via.placeholder.com/300x450?text=${encodeURIComponent(book.title)}`
+                            return (
+                                <div className="group transition-transform hover:-translate-y-1" key={book.id}>
+                                    <div className="relative rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all mb-4 aspect-[2/3]">
+                                        <img src={imgSrc} alt={book.title} className="w-full h-full object-cover" />
+                                        <button onClick={() => addItem({ bookId: book.id, title: book.title, price: book.price, cover: book.cover })} className="absolute bottom-0 left-0 w-full py-3 bg-white/95 text-dark font-semibold hover:bg-primary hover:text-white transition-all translate-y-full group-hover:translate-y-0">
+                                            Add to Cart
+                                        </button>
+                                    </div>
+                                    <div>
+                                        <a href="#" className="block font-serif font-bold text-lg truncate mb-1 hover:text-primary">{book.title}</a>
+                                        <a href="#" className="block text-sm text-gray-500 mb-2 hover:underline">Unknown Author</a>
+                                        <div className="font-bold text-primary-dark">${book.price?.toFixed ? book.price.toFixed(2) : book.price}</div>
+                                    </div>
+                                </div>
+                            )
+                        })
+                    )}
                 </div>
             </div>
         </section>

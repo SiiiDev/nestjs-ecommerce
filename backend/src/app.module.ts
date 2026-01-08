@@ -15,6 +15,8 @@ import { OrdersModule } from './orders/orders.module';
 import { OrderItemsModule } from './order-items/order-items.module';
 import { BookSalesDailyModule } from './book-sales-daily/book-sales-daily.module';
 import { Book } from './books/entities/book.entity';
+import { CartModule } from './cart/cart.module';
+import { CartItem } from './cart/entities/cart-item.entity';
 
 @Module({
   imports: [
@@ -28,7 +30,7 @@ import { Book } from './books/entities/book.entity';
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
-      entities: [User, Product, Category, Book],
+      entities: [User, Product, Category, Book, CartItem],
     }),
     UsersModule,
     AuthModule,
@@ -38,6 +40,7 @@ import { Book } from './books/entities/book.entity';
     OrdersModule,
     OrderItemsModule,
     BookSalesDailyModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService],
