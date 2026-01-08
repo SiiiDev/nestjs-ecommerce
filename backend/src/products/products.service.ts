@@ -31,12 +31,38 @@ export class ProductsService {
         return this.productRepo.save(product);
     }
 
-    async findAll(): Promise<Product[]> {
-        return this.productRepo.find({
-            relations: ['category'],
-            order: {createdAt: 'ASC'}
-        });
+    async findAllPagination(
+        page: number,
+        limit: number,
+        category: string,
+        search: string
+    ): Promise<{ data: Product[]; meta: { total: number; page: number; lastPage: number } }> {
+        const query = await this.productRepo.createQueryBuilder('product')
+        .leftJoinAndSelect('product.category', 'category')
+        .orderBy('product.createdAt', 'DESC')
+        .skip((page - 1) * limit)
+        .take(limit);
+
+        if(category){
+            query.andWhere('category.id = :category', {category});
+        }
+
+        if(search){
+            query.andWhere('product.title ILike :search', {search: `%${search}%`});
+        }
+
+        const [data, total] = await query.getManyAndCount();
+
+        return {
+            data, 
+            meta : {
+                total, 
+                page,
+                lastPage: Math.ceil(total / limit)
+            },  
+        }
     }
+
 
     async findOne(id: string): Promise<Product> {
         const product = await this.productRepo.findOne({where: {id}});

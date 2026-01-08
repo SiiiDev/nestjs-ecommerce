@@ -1,3 +1,4 @@
+import { Book } from "src/books/entities/book.entity";
 import { Product } from "src/products/entities/product.entity";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
@@ -15,4 +16,7 @@ export class Category {
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @OneToMany(() => Book, (book) => book.category)
+    books: Book[];
 }

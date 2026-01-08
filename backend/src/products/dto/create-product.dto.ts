@@ -16,8 +16,9 @@ export class CreateProductDto {
     @Min(0)
     stock: number;
 
+    @IsOptional()
     @IsString()
-    image: string
+    image?: string
 
     @IsUUID()
     @IsOptional()

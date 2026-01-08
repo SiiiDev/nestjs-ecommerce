@@ -10,6 +10,11 @@ import { ProductsModule } from './products/products.module';
 import { User } from './users/entities/user.entity';
 import { Product } from './products/entities/product.entity';
 import { Category } from './categories/entities/category.entity';
+import { BooksModule } from './books/books.module';
+import { OrdersModule } from './orders/orders.module';
+import { OrderItemsModule } from './order-items/order-items.module';
+import { BookSalesDailyModule } from './book-sales-daily/book-sales-daily.module';
+import { Book } from './books/entities/book.entity';
 
 @Module({
   imports: [
@@ -23,12 +28,16 @@ import { Category } from './categories/entities/category.entity';
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
-      entities: [User, Product, Category],
+      entities: [User, Product, Category, Book],
     }),
     UsersModule,
     AuthModule,
     ProductsModule,
     CategoriesModule,
+    BooksModule,
+    OrdersModule,
+    OrderItemsModule,
+    BookSalesDailyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

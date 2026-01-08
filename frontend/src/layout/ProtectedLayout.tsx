@@ -1,11 +1,7 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-interface ProtectedLayoutProps {
-  children: React.ReactNode;
-}
-
-const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
+const ProtectedLayout = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -20,7 +16,7 @@ const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return <><Outlet/></>;
 };
 
 export default ProtectedLayout;

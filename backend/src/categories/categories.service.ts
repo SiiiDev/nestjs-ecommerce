@@ -24,9 +24,11 @@ export class CategoriesService {
     }
 
     async findAll(): Promise<Category[]> {
-        return this.categoryRepo.find({
-            order: {createdAt : 'DESC'}
-        });
+        return this.categoryRepo
+        .createQueryBuilder('category')
+        .loadRelationCountAndMap('category.booksCount', 'category.books')
+        .orderBy('category.createdAt', 'DESC')
+        .getMany();
     }
 
     async findOne(id: string): Promise<Category> {

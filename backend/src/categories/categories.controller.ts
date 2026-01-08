@@ -9,17 +9,17 @@ export class CategoriesController {
 
   @Get()
   findAll(){
-    this.categoriesService.findAll();
+    return this.categoriesService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string){
-    this.categoriesService.findOne(id);
+    return this.categoriesService.findOne(id);
   }
 
   @Post()
   create(@Body() dto: CreateCategoryDto){
-    this.categoriesService.create(dto)
+    return this.categoriesService.create(dto)
   }
 
   @Patch(':id')
@@ -27,11 +27,11 @@ export class CategoriesController {
     @Param('id') id: string,
     @Body() dto: UpdateCategoryDto
   ){
-    this.categoriesService.update(id, dto);
+    return this.categoriesService.update(id, dto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string){
-    this.categoriesService.remove(id);
+    return this.categoriesService.remove(id);
   }
 }
