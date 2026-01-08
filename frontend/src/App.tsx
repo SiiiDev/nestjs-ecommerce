@@ -13,8 +13,7 @@ const App = () => {
   return (
       <Routes>
         <Route path="/" element={<ProtectedLayout/>}>
-          <Route path="/" element={<Home />} />
-          <Route path="/book" element={<Accueil />} />
+          <Route path="/" element={<Accueil />} />
         </Route>
         <Route path="/admin" element={<AdminRoute />} >
           <Route path="products" element={<ProductsPage/>} />
